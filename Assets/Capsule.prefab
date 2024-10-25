@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 8077752420819746114}
   - component: {fileID: 4559082399762899869}
   - component: {fileID: 2608754205668571337}
-  - component: {fileID: 4618045799989288228}
   - component: {fileID: 984248963398113403}
+  - component: {fileID: 5564382082987840763}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -42,7 +42,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6169956113953252014}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &2608754205668571337
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -85,8 +85,24 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &4618045799989288228
-CapsuleCollider:
+--- !u!114 &984248963398113403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6169956113953252014}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a51fc51700761a4fb144b34f9b3f55b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  velocity: {x: -5, y: 2, z: 0}
+  drag: 0.1
+  mass: 1
+  radius: 1
+--- !u!135 &5564382082987840763
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -103,23 +119,6 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &984248963398113403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6169956113953252014}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a51fc51700761a4fb144b34f9b3f55b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  velocity: {x: -5, y: 2, z: 0}
-  drag: 0.1
-  mass: 1

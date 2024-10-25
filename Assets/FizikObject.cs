@@ -7,6 +7,7 @@ public class FizikObject : MonoBehaviour
     public Vector3 velocity = Vector3.zero;
     public float drag = 0.1f;
     public float mass = 1f;
+    public float radius = 1f;
 
     void Start()
     {
