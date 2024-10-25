@@ -11,4 +11,5 @@ public abstract class FizziksShape : MonoBehaviour
         Halfspace
     }
 
+    public abstract Shape GetShape();
 }
