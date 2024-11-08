@@ -88,7 +88,7 @@ public class FizikMotoru : MonoBehaviour
                     isOverlapping = CollideSphereHalfspace((FizziksShapeSphere)objectB.shape, (FizziksShapeHalfspace)objectA.shape, objectB);
                 }
 
-                // If a collision is detected, change color to indicate collision
+                // if a collision is detected, change color to indicate collision
                 if (isOverlapping)
                 {
                     objectA.GetComponent<Renderer>().material.color = Color.red;
