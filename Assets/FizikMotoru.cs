@@ -17,38 +17,43 @@ public class FizikMotoru : MonoBehaviour
         }
     }
 
-    public List<FizikObject> objects = new List<FizikObject>(); // List of all physics objects
-    public float dt = 0.02f; // Delta time for the physics simulation
-    public Vector3 AccelerationGravity = new Vector3(0, -10, 0); // Gravity direction and strength
+    // List to store all physics objects in the simulation
+    public List<FizikObject> objects = new List<FizikObject>();
+    public float dt = 0.02f; // Time step for physics simulation
+    public Vector3 AccelerationGravity = new Vector3(0, -10, 0); // Gravity vector
 
     void FixedUpdate()
     {
+        // Update each object if it is not static
         foreach (FizikObject objectA in objects)
         {
-            Vector3 prevPos = objectA.transform.position;
-            Vector3 newPos = objectA.transform.position + objectA.velocity * dt;
+            if (!objectA.isStatic) // Only apply physics to non-static objects
+            {
+                Vector3 prevPos = objectA.transform.position;
+                Vector3 newPos = objectA.transform.position + objectA.velocity * dt;
 
-            // Update position
-            objectA.transform.position = newPos;
+                // Update position based on calculated new position
+                objectA.transform.position = newPos;
 
-            Vector3 accelerationThisFrame = AccelerationGravity * objectA.gravityScale;
+                // Apply gravity to the velocity
+                Vector3 accelerationThisFrame = AccelerationGravity * objectA.gravityScale;
+                objectA.velocity += accelerationThisFrame * dt;
 
-            // Update velocity according to gravity
-            objectA.velocity += accelerationThisFrame * dt;
+                ApplyDrag(objectA); // Apply drag force to the object
 
-            ApplyDrag(objectA);
-
-            Debug.DrawLine(prevPos, newPos, Color.green, 10);
-            Debug.DrawLine(objectA.transform.position, objectA.transform.position + objectA.velocity, Color.red, 10);
+                // Draw debug lines to visualize movement
+                Debug.DrawLine(prevPos, newPos, Color.green, 10);
+                Debug.DrawLine(objectA.transform.position, objectA.transform.position + objectA.velocity, Color.red, 10);
+            }
         }
 
-        // Reset the color of all objects before collision checks
+        // Reset colors of objects for collision visualization
         foreach (FizikObject obj in objects)
         {
             obj.GetComponent<Renderer>().material.color = Color.white;
         }
 
-        // Check for collisions between all objects
+        // Check collisions between each pair of objects
         for (int iA = 0; iA < objects.Count; iA++)
         {
             FizikObject objectA = objects[iA];
@@ -57,35 +62,33 @@ public class FizikMotoru : MonoBehaviour
             {
                 FizikObject objectB = objects[iB];
 
-                if (objectA == objectB) continue;
+                if (objectA == objectB) continue; // Skip same object
 
                 bool isOverlapping = false;
 
-                // Sphere-Sphere Collision
+                // Determine collision type and handle accordingly
                 if (objectA.shape.GetShape() == FizziksShape.Shape.Sphere && objectB.shape.GetShape() == FizziksShape.Shape.Sphere)
                 {
-                    isOverlapping = IsOverlappingSpheres(objectA, objectB);
+                    isOverlapping = CollideSpheres(objectA, objectB);
                 }
-                // Sphere-Plane Collision
-                else if (objectA.shape.GetShape() == FizziksShape.Shape.Sphere && objectB.shape.GetShape() == FizziksShape.Shape.Plane)
+                else if (objectA.shape.GetShape() == FizziksShape.Shape.Sphere && objectB.shape.GetShape() == FizziksShape.Shape.Plane && objectB.isStatic)
                 {
-                    isOverlapping = IsOverlappingSpherePlane((FizziksShapeSphere)objectA.shape, (FizziksShapePlane)objectB.shape);
+                    isOverlapping = CollideSpherePlane((FizziksShapeSphere)objectA.shape, (FizziksShapePlane)objectB.shape, objectA);
                 }
-                else if (objectA.shape.GetShape() == FizziksShape.Shape.Plane && objectB.shape.GetShape() == FizziksShape.Shape.Sphere)
+                else if (objectA.shape.GetShape() == FizziksShape.Shape.Plane && objectB.shape.GetShape() == FizziksShape.Shape.Sphere && objectA.isStatic)
                 {
-                    isOverlapping = IsOverlappingSpherePlane((FizziksShapeSphere)objectB.shape, (FizziksShapePlane)objectA.shape);
+                    isOverlapping = CollideSpherePlane((FizziksShapeSphere)objectB.shape, (FizziksShapePlane)objectA.shape, objectB);
                 }
-                // Sphere-Halfspace Collision
-                else if (objectA.shape.GetShape() == FizziksShape.Shape.Sphere && objectB.shape.GetShape() == FizziksShape.Shape.Halfspace)
+                else if (objectA.shape.GetShape() == FizziksShape.Shape.Sphere && objectB.shape.GetShape() == FizziksShape.Shape.Halfspace && objectB.isStatic)
                 {
-                    isOverlapping = IsOverlappingSphereHalfspace((FizziksShapeSphere)objectA.shape, (FizziksShapeHalfspace)objectB.shape);
+                    isOverlapping = CollideSphereHalfspace((FizziksShapeSphere)objectA.shape, (FizziksShapeHalfspace)objectB.shape, objectA);
                 }
-                else if (objectA.shape.GetShape() == FizziksShape.Shape.Halfspace && objectB.shape.GetShape() == FizziksShape.Shape.Sphere)
+                else if (objectA.shape.GetShape() == FizziksShape.Shape.Halfspace && objectB.shape.GetShape() == FizziksShape.Shape.Sphere && objectA.isStatic)
                 {
-                    isOverlapping = IsOverlappingSphereHalfspace((FizziksShapeSphere)objectB.shape, (FizziksShapeHalfspace)objectA.shape);
+                    isOverlapping = CollideSphereHalfspace((FizziksShapeSphere)objectB.shape, (FizziksShapeHalfspace)objectA.shape, objectB);
                 }
 
-                // If a collision is detected, change colors to visualize the collision
+                // If a collision is detected, change color to indicate collision
                 if (isOverlapping)
                 {
                     objectA.GetComponent<Renderer>().material.color = Color.red;
@@ -104,33 +107,76 @@ public class FizikMotoru : MonoBehaviour
         objectA.velocity += dragForce * dt;
     }
 
-    // Check if two spheres are colliding
-    public bool IsOverlappingSpheres(FizikObject objectA, FizikObject objectB)
+    // Sphere-Sphere Collision with translation adjustment for static interactions
+    public static bool CollideSpheres(FizikObject objectA, FizikObject objectB)
     {
         Vector3 displacement = objectA.transform.position - objectB.transform.position;
         float distance = displacement.magnitude;
         float radiusA = ((FizziksShapeSphere)objectA.shape).radius;
         float radiusB = ((FizziksShapeSphere)objectB.shape).radius;
 
-        return distance < radiusA + radiusB;
+        float overlap = radiusA + radiusB - distance;
+
+        if (overlap > 0.0f)
+        {
+            Vector3 collisionNormal = displacement / distance;
+
+            if (objectA.isStatic || objectB.isStatic) // Handle static object collision
+            {
+                if (objectA.isStatic)
+                {
+                    objectB.transform.position -= collisionNormal * overlap;
+                    objectB.velocity = Vector3.zero; // Stop movement for dynamic object on collision
+                }
+                else
+                {
+                    objectA.transform.position += collisionNormal * overlap;
+                    objectA.velocity = Vector3.zero;
+                }
+            }
+            else
+            {
+                // Handle collision response for two non-static objects
+                Vector3 mtv = collisionNormal * overlap * 0.5f;
+                objectA.transform.position += mtv;
+                objectB.transform.position -= mtv;
+            }
+
+            return true;
+        }
+        return false;
     }
 
-    // Check if a sphere is colliding with a plane
-    public bool IsOverlappingSpherePlane(FizziksShapeSphere sphere, FizziksShapePlane plane)
+    // Sphere-Plane Collision with static interaction handling
+    public bool CollideSpherePlane(FizziksShapeSphere sphere, FizziksShapePlane plane, FizikObject objectA)
     {
         Vector3 planeToSphere = sphere.transform.position - plane.transform.position;
         float positionAlongNormal = Vector3.Dot(planeToSphere, plane.Normal());
         float distanceToPlane = Mathf.Abs(positionAlongNormal);
-        return distanceToPlane < sphere.radius;
+
+        if (distanceToPlane < sphere.radius)
+        {
+            Vector3 mtv = plane.Normal() * (sphere.radius - distanceToPlane);
+            objectA.transform.position += mtv;
+            objectA.velocity = Vector3.zero;
+            return true;
+        }
+        return false;
     }
 
-    // Check if a sphere is colliding with a halfspace
-    public bool IsOverlappingSphereHalfspace(FizziksShapeSphere sphere, FizziksShapeHalfspace halfspace)
+    // Sphere-Halfspace Collision with static interaction handling
+    public bool CollideSphereHalfspace(FizziksShapeSphere sphere, FizziksShapeHalfspace halfspace, FizikObject objectA)
     {
         Vector3 planeToSphere = sphere.transform.position - halfspace.transform.position;
         float positionAlongNormal = Vector3.Dot(planeToSphere, halfspace.Normal());
 
-        // If the sphere is in the halfspace region (behind the plane), it's overlapping
-        return positionAlongNormal < sphere.radius;
+        if (positionAlongNormal < sphere.radius)
+        {
+            Vector3 mtv = halfspace.Normal() * (sphere.radius - positionAlongNormal);
+            objectA.transform.position += mtv;
+            objectA.velocity = Vector3.zero;
+            return true;
+        }
+        return false;
     }
 }
