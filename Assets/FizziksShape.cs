@@ -8,7 +8,8 @@ public abstract class FizziksShape : MonoBehaviour
     {
         Sphere,
         Plane,
-        Halfspace
+        Halfspace,
+        AABB
     }
 
     public abstract Shape GetShape();

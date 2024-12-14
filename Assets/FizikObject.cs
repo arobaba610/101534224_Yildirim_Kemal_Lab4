@@ -10,6 +10,20 @@ public class FizikObject : MonoBehaviour
     public float mass = 1f;
     public float gravityScale = 1;
     public bool isStatic = false; // defination for static objects
+    public SurfaceMaterial surfaceMaterial;
+
+    public float restitution = 0.8f;
+
+
+
+    [System.Serializable]
+    public class SurfaceMaterial
+    {
+        public string name;
+        public float coefficientOfRestitution = 0.8f; // Default CoR value
+    }
+
+
 
     //public float radius = 1f;
 
