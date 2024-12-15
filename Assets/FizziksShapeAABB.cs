@@ -7,9 +7,11 @@ public class FizziksShapeAABB : FizziksShape
     public Vector3 min;
     public Vector3 max;
 
+
     void Start()
     {
         RecalculateBounds();
+
     }
 
     public void RecalculateBounds()

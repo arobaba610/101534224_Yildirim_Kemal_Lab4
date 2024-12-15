@@ -124,7 +124,7 @@ MonoBehaviour:
   drag: 0.1
   mass: 1
   gravityScale: 1
-  isStatic: 0
+  isStatic: 1
   surfaceMaterial:
     name: 
     coefficientOfRestitution: 0.8

@@ -9,30 +9,21 @@ public class FizikObject : MonoBehaviour
     public float drag = 0.1f;
     public float mass = 1f;
     public float gravityScale = 1;
-    public bool isStatic = false; // defination for static objects
-    public SurfaceMaterial surfaceMaterial;
+    public bool isStatic = false; // Definition for static objects
 
-    public float restitution = 0.8f;
-
-
-
-    [System.Serializable]
-    public class SurfaceMaterial
-    {
-        public string name;
-        public float coefficientOfRestitution = 0.8f; // Default CoR value
-    }
-
-
-
-    //public float radius = 1f;
-
-    public float launchTime; // launchTime 
+    public FizikMotoru.SurfaceMaterial material; // Use the shared SurfaceMaterial class
 
     void Start()
     {
         shape = GetComponent<FizziksShape>();
+
+        // Default material setup if not assigned
+        if (material == null)
+        {
+            material = new FizikMotoru.SurfaceMaterial("Default", 0.8f);
+        }
+
+        // Add this object to the physics engine
         FizikMotoru.Instance.objects.Add(this);
     }
-
 }
